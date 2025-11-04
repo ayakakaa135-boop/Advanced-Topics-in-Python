@@ -1,79 +1,89 @@
-from colorama import Fore, Style
+from colorama import Fore, Style, init
+
+init(autoreset=True)
 
 
-board = {str(i): ' ' for i in range(1, 10)}
+theBoard = {'7': ' ', '8': ' ', '9': ' ',
+            '4': ' ', '5': ' ', '6': ' ',
+            '1': ' ', '2': ' ', '3': ' '}
 
 
-def print_board(b):
+def printBoard(board):
     print()
-    print(f" {b['7']} | {b['8']} | {b['9']} ")
-    print("---+---+---")
-    print(f" {b['4']} | {b['5']} | {b['6']} ")
-    print("---+---+---")
-    print(f" {b['1']} | {b['2']} | {b['3']} ")
+    print(board['7'] + '|' + board['8'] + '|' + board['9'])
+    print('-+-+-')
+    print(board['4'] + '|' + board['5'] + '|' + board['6'])
+    print('-+-+-')
+    print(board['1'] + '|' + board['2'] + '|' + board['3'])
     print()
 
 
-def check_winner(b):
-    winning_combos = [
-        ['7', '8', '9'], ['4', '5', '6'], ['1', '2', '3'],
-        ['7', '4', '1'], ['8', '5', '2'], ['9', '6', '3'],
-        ['7', '5', '3'], ['1', '5', '9']
-    ]
-    for combo in winning_combos:
-        if b[combo[0]] == b[combo[1]] == b[combo[2]] != ' ':
-            return True
-    return False
+def resetBoard():
+    for key in theBoard:
+        theBoard[key] = ' '
 
 
-def reset_board(b):
-    for k in b:
-        b[k] = ' '
-
-
-def game():
+def game(player1, player2):
     turn = 'X'
     count = 0
+    current_player = player1
 
-    while True:
-        print_board(board)
-        move = input(f"Player {Fore.GREEN + turn + Style.RESET_ALL}, choose a position (1-9): ")
+    for _ in range(9):
+        printBoard(theBoard)
+        print(f"{Fore.CYAN}{current_player} ({turn}){Style.RESET_ALL}, it's your turn.")
+        move = input("Choose position (1–9): ").strip()
 
-
-        if move not in board:
-            print("❌ Invalid move! Try again.")
+        if move not in theBoard:
+            print("❌ Invalid move. Choose between 1–9.")
             continue
 
-        if board[move] != ' ':
-            print(" Spot already taken, choose another.")
+        if theBoard[move] == ' ':
+            if turn == 'X':
+                theBoard[move] = Fore.GREEN + 'X' + Style.RESET_ALL
+            else:
+                theBoard[move] = Fore.RED + 'O' + Style.RESET_ALL
+            count += 1
+        else:
+            print(" That place is already filled. Try again.")
             continue
 
 
-        board[move] = Fore.GREEN + 'X' + Style.RESET_ALL if turn == 'X' else Fore.RED + 'O' + Style.RESET_ALL
-        count += 1
-
-
-        if count >= 5 and check_winner(board):
-            print_board(board)
-            print(f" Player {turn} wins! ")
-            break
-
+        if count >= 5:
+            combos = [
+                ['7', '8', '9'], ['4', '5', '6'], ['1', '2', '3'],
+                ['7', '4', '1'], ['8', '5', '2'], ['9', '6', '3'],
+                ['7', '5', '3'], ['1', '5', '9']
+            ]
+            for line in combos:
+                if theBoard[line[0]] == theBoard[line[1]] == theBoard[line[2]] != ' ':
+                    printBoard(theBoard)
+                    print(f"\n Game Over — {Fore.YELLOW}{current_player}{Style.RESET_ALL} wins! \n")
+                    return
 
         if count == 9:
-            print_board(board)
-            print(" It's a tie!")
-            break
+            printBoard(theBoard)
+            print("\n  Game Over — It's a Tie!\n")
+            return
 
 
-        turn = 'O' if turn == 'X' else 'X'
+        if turn == 'X':
+            turn = 'O'
+            current_player = player2
+        else:
+            turn = 'X'
+            current_player = player1
 
 
 if __name__ == "__main__":
+    print("🎮 Welcome to Tic-Tac-Toe!\n")
+    player1 = input("Enter name for Player 1 (X): ").strip() or "Player 1"
+    player2 = input("Enter name for Player 2 (O): ").strip() or "Player 2"
+
     while True:
-        game()
-        again = input("\nPlay again? (y/n): ").lower()
+        game(player1, player2)
+        again = input("Play again? (y/n): ").lower()
         if again == 'y':
-            reset_board(board)
+            resetBoard()
         else:
-            print(" Thanks for playing!")
+            print("👋 Thanks for playing!")
             break
