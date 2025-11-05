@@ -1,89 +1,77 @@
-from colorama import Fore, Style, init
+from colorama import Fore, Style
 
-init(autoreset=True)
+# ===== Constants =====
+PLAYER_X = 'X'
+PLAYER_O = 'O'
+WIN_COMBOS = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+    [1, 4, 7],
+    [2, 5, 8],
+    [3, 6, 9],
+    [1, 5, 9],
+    [3, 5, 7]
+]
 
-
-theBoard = {'7': ' ', '8': ' ', '9': ' ',
-            '4': ' ', '5': ' ', '6': ' ',
-            '1': ' ', '2': ' ', '3': ' '}
-
-
+# ===== Functions =====
 def printBoard(board):
-    print()
-    print(board['7'] + '|' + board['8'] + '|' + board['9'])
-    print('-+-+-')
-    print(board['4'] + '|' + board['5'] + '|' + board['6'])
-    print('-+-+-')
-    print(board['1'] + '|' + board['2'] + '|' + board['3'])
-    print()
-
+    print(f"\n {board[1]} | {board[2]} | {board[3]} ")
+    print("---+---+---")
+    print(f" {board[4]} | {board[5]} | {board[6]} ")
+    print("---+---+---")
+    print(f" {board[7]} | {board[8]} | {board[9]} \n")
 
 def resetBoard():
-    for key in theBoard:
-        theBoard[key] = ' '
+    return {i: str(i) for i in range(1, 10)}
 
+def checkWin(board, symbol):
+    return any(all(board[pos] == symbol for pos in combo) for combo in WIN_COMBOS)
 
-def game(player1, player2):
-    turn = 'X'
-    count = 0
-    current_player = player1
+def game(players_data):
+    board = resetBoard()
+    printBoard(board)
+    turn = PLAYER_X
 
     for _ in range(9):
-        printBoard(theBoard)
-        print(f"{Fore.CYAN}{current_player} ({turn}){Style.RESET_ALL}, it's your turn.")
-        move = input("Choose position (1–9): ").strip()
+        player = players_data[turn]
+        move = input(f"{player['color']}{player['name']} ({turn}) choose position (1-9): {Style.RESET_ALL}")
 
-        if move not in theBoard:
-            print("❌ Invalid move. Choose between 1–9.")
+        if not move.isdigit() or int(move) not in range(1, 10):
+            print(Fore.YELLOW + "❌ Invalid input. Enter number 1–9." + Style.RESET_ALL)
             continue
 
-        if theBoard[move] == ' ':
-            if turn == 'X':
-                theBoard[move] = Fore.GREEN + 'X' + Style.RESET_ALL
-            else:
-                theBoard[move] = Fore.RED + 'O' + Style.RESET_ALL
-            count += 1
-        else:
-            print(" That place is already filled. Try again.")
+        move = int(move)
+        if board[move] in [PLAYER_X, PLAYER_O]:
+            print(Fore.RED + "⚠️ Spot already taken!" + Style.RESET_ALL)
             continue
 
+        board[move] = turn
+        printBoard(board)
 
-        if count >= 5:
-            combos = [
-                ['7', '8', '9'], ['4', '5', '6'], ['1', '2', '3'],
-                ['7', '4', '1'], ['8', '5', '2'], ['9', '6', '3'],
-                ['7', '5', '3'], ['1', '5', '9']
-            ]
-            for line in combos:
-                if theBoard[line[0]] == theBoard[line[1]] == theBoard[line[2]] != ' ':
-                    printBoard(theBoard)
-                    print(f"\n Game Over — {Fore.YELLOW}{current_player}{Style.RESET_ALL} wins! \n")
-                    return
+        if checkWin(board, turn):
+            print(player['color'] + f"🏆 {player['name']} wins!" + Style.RESET_ALL)
+            break
 
-        if count == 9:
-            printBoard(theBoard)
-            print("\n  Game Over — It's a Tie!\n")
-            return
+        turn = PLAYER_O if turn == PLAYER_X else PLAYER_X  # ternary switch
+
+    else:
+        print(Fore.CYAN + "🤝 It's a draw!" + Style.RESET_ALL)
 
 
-        if turn == 'X':
-            turn = 'O'
-            current_player = player2
-        else:
-            turn = 'X'
-            current_player = player1
-
-
+# ===== Main =====
 if __name__ == "__main__":
-    print("🎮 Welcome to Tic-Tac-Toe!\n")
-    player1 = input("Enter name for Player 1 (X): ").strip() or "Player 1"
-    player2 = input("Enter name for Player 2 (O): ").strip() or "Player 2"
+    p1_name = input("Enter Player 1 name: ")
+    p2_name = input("Enter Player 2 name: ")
+
+    players_data = {
+        PLAYER_X: {'name': p1_name, 'color': Fore.GREEN},
+        PLAYER_O: {'name': p2_name, 'color': Fore.RED}
+    }
 
     while True:
-        game(player1, player2)
+        game(players_data)
         again = input("Play again? (y/n): ").lower()
-        if again == 'y':
-            resetBoard()
-        else:
-            print("👋 Thanks for playing!")
+        if again != 'y':
+            print(Fore.MAGENTA + "👋 Thanks for playing!" + Style.RESET_ALL)
             break
