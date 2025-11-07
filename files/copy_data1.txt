@@ -1,0 +1,5 @@
+Hello Aya!
+Welcome to Python file handling.
+1
+2
+3
